@@ -1,0 +1,2 @@
+GET        /greetings                      controllers.PriceController.greetings(id: Int, name: String)
+GET        /price/movement                 controllers.PriceController.priceMovement(from: String, to: String)

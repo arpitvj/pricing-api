@@ -1,0 +1,12 @@
+{
+    "base": "BTC",
+    "currency": "USD",
+    "prices": [
+      {
+        "price": "8133.90"
+      },
+      {
+        "price": "8201.92"
+      }
+    ]
+}

@@ -1,0 +1,7 @@
+[0m[[0m[31merror[0m] [0m[0m/Users/avijayvargiy/code/play/pricing/app/models/package.scala:42:29: overloaded method value read with alternatives:[0m
+[0m[[0m[31merror[0m] [0m[0m  (t: Double)play.api.libs.json.Reads[Double] <and>[0m
+[0m[[0m[31merror[0m] [0m[0m  (implicit r: play.api.libs.json.Reads[Double])play.api.libs.json.Reads[Double][0m
+[0m[[0m[31merror[0m] [0m[0m cannot be applied to (Double => models.package.PriceInfo)[0m
+[0m[[0m[31merror[0m] [0m[0m    ((JsPath \ "price").read[Double])(PriceInfo.apply _)[0m
+[0m[[0m[31merror[0m] [0m[0m                            ^[0m
+[0m[[0m[31merror[0m] [0m[0mone error found[0m
