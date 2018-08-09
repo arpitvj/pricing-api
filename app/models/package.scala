@@ -1,96 +1,90 @@
-import play.api.libs.json.{JsPath, Json, Reads, Writes, OFormat}
+import java.text.SimpleDateFormat
+
+import akka.actor.Status.{Failure, Success}
+import org.joda.time.{DateTime, DateTimeZone}
+import org.joda.time.format.DateTimeFormat
+import play.api.libs.json.Json
+import spray.json._
+
+import scala.util.Try
+import org.joda.time.{LocalDateTime => JodaLocalDateTime}
+import play.api.libs.json.JodaWrites._
+import play.api.libs.json.JodaReads._
+import org.joda.time.DateTime
+import org.joda.time.format.ISODateTimeFormat
 
 package object models {
 
-
-
-
-
-
-  //implicit val historicalDataFormat = Json.format[HistoricalData]
-
-
-  /*val dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
-
-  implicit val jodaDateReads = Reads[DateTime](js =>
-    js.validate[String].map[DateTime](dtString =>
-      DateTime.parse(dtString, DateTimeFormat.forPattern(dateFormat))
-    )
-  )
-
-  implicit val jodaDateWrites: Writes[DateTime] = new Writes[DateTime] {
-    def writes(d: DateTime): JsValue = JsString(d.toString())
-  }
-
-  implicit val userWrites: Writes[PriceInfo] = (
-    (JsPath \ "price").write[Double] and
-      (JsPath \ "time").write[DateTime](jodaDateWrites)
-    )(unlift(PriceInfo.unapply))
-
-  implicit val priceInfo: Reads[PriceInfo] = (
-    (JsPath \ "price").read[Double] and
-      (JsPath \ "time").read[DateTime](jodaDateReads)
-    )(PriceInfo.apply _)*/
-
-  //implicit val aa: Format[PriceInfo] = Format(priceInfo, userWrites)
-
-  import play.api.libs.functional.syntax._
-  case class PriceInfo(price: Double)//, time: DateTime)
-  implicit val locationReads: Reads[PriceInfo] =
-    ((json \ "price").read[Double])(PriceInfo.apply _)
-
-  implicit val locationWrites: Writes[PriceInfo] = (
-    (JsPath \ "price").write[Double]
-    )(unlift(PriceInfo.unapply))
-
-
-  implicit val priceInfoWrite = Json.writes[PriceInfo]
-  implicit val priceInfoRead = Json.reads[PriceInfo]
-  implicit val aa: OFormat[PriceInfo] = Json.format[PriceInfo]
-
-  //case class PriceInfo(price: Double)//, time: DateTime)
-
-  implicit val priceWrite = Json.writes[PriceCurrencyInfo]
-  implicit val priceRead = Json.reads[PriceCurrencyInfo]
-  implicit val priceCurrencyInfo: OFormat[PriceCurrencyInfo] = Json.format[PriceCurrencyInfo]
-
-  case class PriceCurrencyInfo(base: Option[String], currency: Option[String], prices: Seq[PriceInfo])
-
-
-  implicit val historicalDataFormat: OFormat[HistoricalData] = Json.format[HistoricalData]
+  /**
+    *
+    * Models
+    */
+  case class PriceInfo(price: Double, time: DateTime)
+  case class PriceCurrencyInfo(base: String, currency: String, prices: Seq[PriceInfo])
   case class HistoricalData(data: PriceCurrencyInfo)
 
 
-  object HistoricalData {
-    /*val dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
+  /**
+    * Parsers/Formatters
+    */
 
-    implicit val jodaDateReads = Reads[DateTime](js =>
-      js.validate[String].map[DateTime](dtString =>
-        DateTime.parse(dtString, DateTimeFormat.forPattern(dateFormat))
-      )
-    )
+  implicit val priceInfoFormats = Json.format[PriceInfo]
+  implicit val priceCurrencyInfoFormats = Json.format[PriceCurrencyInfo]
+  implicit val historicalDataFormats = Json.format[HistoricalData]
 
-    val jodaDateWrites: Writes[DateTime] = new Writes[DateTime] {
-      def writes(d: DateTime): JsValue = JsString(d.toString())
+  object HistoricalDataProtocol extends DefaultJsonProtocol {
+
+    implicit val priceInfoFormat = jsonFormat2(PriceInfo)
+    implicit val priceCurrencyInfoFormat = jsonFormat3(PriceCurrencyInfo)
+
+    implicit object DateTimeJsonFormat extends RootJsonFormat[org.joda.time.DateTime] {
+      lazy val format = new java.text.SimpleDateFormat()
+      def read(json: JsValue): DateTime = new DateTime()
+      def write(date: DateTime) = JsString(new DateTime(date, DateTimeZone.UTC).withZone(DateTimeZone.forID("UTC")).getMillis.toString)
     }
 
-    val userWrites: Writes[PriceInfo] = (
-      (JsPath \ "price").write[Double] and
-        (JsPath \ "time").write[DateTime](jodaDateWrites)
-      )(unlift(PriceInfo.unapply))
+    implicit object PriceInfoJsonFormat extends RootJsonFormat[PriceInfo] {
+      def write(c: PriceInfo) = JsObject(
+        "price" -> JsNumber(c.price),
+        "time" -> JsString(c.time.toString(utils.DateUtil.DATE_TIME_FORMAT))
+      )
+      def read(value: JsValue) = {
+        val jsonObj = value.asJsObject
+        jsonObj.getFields("price", "time") match {
+          case Seq(data, time) => {
+            PriceInfo(data.convertTo[String].toDouble, utils.DateUtil.parseIsoDateString(time.convertTo[String]).get)
+          }
+          case _ => throw new DeserializationException("PriceInfo expected")
+        }
+      }
+    }
 
+    implicit object PriceCurrencyInfoJsonFormat extends RootJsonFormat[PriceCurrencyInfo] {
+      def write(c: PriceCurrencyInfo) = JsObject(
+        "base" -> JsString(c.base),
+        "currency" -> JsString(c.currency),
+        "prices" -> JsArray(JsObject("price" -> JsNumber(c.prices.head.price)))
+      )
+      def read(value: JsValue) = {
+        val jsonObj = value.asJsObject
+        jsonObj.getFields("base", "currency", "prices") match {
+          case Seq(base, currency, prices) => PriceCurrencyInfo(base.convertTo[String], currency.convertTo[String], prices.convertTo[Seq[PriceInfo]])
+          case _ => throw new DeserializationException("PriceCurrencyInfo expected")
+        }
+      }
+    }
 
-    implicit val aa = Format(priceInfo, userWrites)
-
-    implicit val priceInfo: Reads[PriceInfo] = (
-      (JsPath \ "price").read[Double] and
-        (JsPath \ "time").read[DateTime](jodaDateReads)
-      )(PriceInfo.apply _)
-*/
-
-
-
+    implicit object HistoricalDataJsonFormat extends RootJsonFormat[HistoricalData] {
+      def write(c: HistoricalData) = JsObject(
+        "data" -> JsObject("base" -> JsString(c.data.base), "currency" -> JsString(c.data.currency))
+      )
+      def read(value: JsValue) = {
+        val jsonObj = value.asJsObject
+        jsonObj.getFields("data") match {
+          case Seq(data) => HistoricalData(data.convertTo[PriceCurrencyInfo])
+          case _ => throw new DeserializationException("HistoricalData expected")
+        }
+      }
+    }
   }
-
-
 }

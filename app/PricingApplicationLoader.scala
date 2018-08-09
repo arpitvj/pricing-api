@@ -4,7 +4,6 @@ import com.softwaremill.macwire._
 import play.api.ApplicationLoader.Context
 import play.api._
 import play.api.i18n._
-import play.api.mvc._
 import play.api.routing.Router
 import router.Routes
 

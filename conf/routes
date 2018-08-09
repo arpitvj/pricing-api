@@ -1,1 +1,3 @@
 GET        /price/movement                 controllers.PriceController.priceMovement(from: String, to: String)
+GET        /average/movement               controllers.PriceController.averageMovement(from: String, to: String)
+GET        /suggestion                     controllers.PriceController.suggestion(days: Int)

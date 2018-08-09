@@ -4,6 +4,10 @@ trait ServicesModule {
 
   import com.softwaremill.macwire._
 
-  lazy val pricingService = wire[PricingService]
+
+  /**
+    * Wiring Services here. Used for Dependency Injection.
+    */
+  lazy val pricingService = wire[PricingServiceImpl]
 
 }
