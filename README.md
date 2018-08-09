@@ -2,7 +2,7 @@
 
 
 
-This module provides information of price movement(based on selected dates), average price movement(based on selected dates) and suggestion signal to buy/sell/hold(based on number of X days) for bitcoin. 
+This module provides information of price movement(based on selected dates), average price movement(based on selected dates) and suggestion signal to buy/sell/hold(based on number of X days) for bitcoin. REST APIs based on Scala + Play framework.
 
 ### Project setup:
 
