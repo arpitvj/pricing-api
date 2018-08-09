@@ -30,12 +30,12 @@ sbt run -jvm-debug 5000
 
 ### APIs
 
-* **[GET]** /price/total-movement?from=2010-10-10&to=2012-10-10
+1. **[GET]** /price/total-movement?from=2010-10-10&to=2012-10-10
 
 Provides the total price movements between two given dates.
 
 
-* **[GET]** /price/average-movement?from=2016-10-10&to=2017-10-10
+2. **[GET]** /price/average-movement?from=2016-10-10&to=2017-10-10
 
 Provides average price movements between two given dates.
 
@@ -44,7 +44,7 @@ Calculates SMA(Simple Moving Average)
 ```
 (Sum of all the prices between dates / Total number of price quantities)
 ```  
-* **[GET]** /suggestion?days=1
+3. **[GET]** /suggestion?days=1
 
 Provides the suggestion signal to `BUY` / `SELL` / `HOLD` bitcoin based on the number of days provided.
 The number of days is just the amount of days needs to be taken into account to provide suggestion.
